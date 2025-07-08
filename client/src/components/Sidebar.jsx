@@ -1,4 +1,4 @@
-function Sidebar({ onNewChat, isOpen, onClose }) {
+function Sidebar({ onNewChat, onSelectChat, chatSessions, isOpen, onClose }) {
   return (
     <div
       className={`
@@ -9,6 +9,7 @@ function Sidebar({ onNewChat, isOpen, onClose }) {
       `}
     >
       <div>
+        {/* New Chat Button + Close Button */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-center">
           <button
             onClick={onNewChat}
@@ -16,8 +17,6 @@ function Sidebar({ onNewChat, isOpen, onClose }) {
           >
             ➕ New Chat
           </button>
-
-          {/* Close button (visible only on mobile) */}
           <button
             onClick={onClose}
             className="lg:hidden text-gray-400 ml-2 hover:text-white"
@@ -26,8 +25,26 @@ function Sidebar({ onNewChat, isOpen, onClose }) {
           </button>
         </div>
 
-        <div className="p-4">
+        {/* Chat List Section */}
+        <div className="p-4 overflow-y-auto">
           <h2 className="text-sm text-gray-400 mb-2">Recent Chats</h2>
+
+          {chatSessions.length === 0 ? (
+            <p className="text-gray-500 text-sm">No chats yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {chatSessions.map((chat, index) => (
+                <li key={index}>
+                  <button
+                    onClick={() => onSelectChat(index)}
+                    className="w-full text-left p-2 bg-[#2A2B32] hover:bg-[#3a3b45] rounded text-sm truncate"
+                  >
+                    🗨️ {chat.title || "Untitled Chat"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
