@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import ChatWindow from "../components/ChatWindow";
@@ -8,8 +8,34 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatSessions, setChatSessions] = useState([]);
-  const [currentChatIndex, setCurrentChatIndex] = useState(null);
+  const [currentChatId, setCurrentChatId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Load all chats on page load
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/chat");
+        const data = await res.json();
+
+        if (res.ok) {
+          setChatSessions(data);
+          if (data.length > 0) {
+            setMessages(data[0].messages);
+            setCurrentChatId(data[0]._id);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load chats:", err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchChats();
+  }, []);
+
+  // handleSend function
   const handleSend = async (message) => {
     if (!message.trim()) return;
 
@@ -22,27 +48,30 @@ function ChatPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, chatId: currentChatId }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        const finalMessages = [...updatedMessages, { role: "bot", content: data.reply }];
+        const finalMessages = [
+          ...updatedMessages,
+          { role: "bot", content: data.reply },
+        ];
         setMessages(finalMessages);
 
-        const title = finalMessages[0]?.content.slice(0, 20) || "New Chat";
-
-        if (currentChatIndex !== null) {
-          // Update current chat
-          const updatedSessions = [...chatSessions];
-          updatedSessions[currentChatIndex] = { title, messages: finalMessages };
+        if (currentChatId) {
+          const updatedSessions = chatSessions.map((session) =>
+            session._id === currentChatId
+              ? { ...session, messages: finalMessages }
+              : session
+          );
           setChatSessions(updatedSessions);
+        } else if (data.chat && data.chat._id) {
+          setChatSessions((prev) => [...prev, data.chat]);
+          setCurrentChatId(data.chat._id);
         } else {
-          // Create new chat
-          const newIndex = chatSessions.length;
-          setChatSessions((prev) => [...prev, { title, messages: finalMessages }]);
-          setCurrentChatIndex(newIndex);
+          console.warn("⚠️ No valid chat returned from backend.");
         }
       } else {
         setMessages((prev) => [
@@ -61,28 +90,48 @@ function ChatPage() {
 
   const handleNewChat = () => {
     setMessages([]);
-    setCurrentChatIndex(null);
+    setCurrentChatId(null);
     setSidebarOpen(false);
   };
 
-  const handleSelectChat = (index) => {
-    const session = chatSessions[index];
+  const handleSelectChat = (id) => {
+    const session = chatSessions.find((c) => c._id === id);
     setMessages(session.messages);
-    setCurrentChatIndex(index);
+    setCurrentChatId(id);
     setSidebarOpen(false);
   };
 
-  const handleDeleteChat = () => {
-    if (currentChatIndex !== null) {
-      const updatedSessions = [...chatSessions];
-      updatedSessions.splice(currentChatIndex, 1);
-      setChatSessions(updatedSessions);
+  const handleDeleteChat = async () => {
+    if (!currentChatId) return;
 
-      // Reset state
-      setMessages([]);
-      setCurrentChatIndex(null);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/chat/${currentChatId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (res.ok) {
+        const updatedSessions = chatSessions.filter(
+          (c) => c._id !== currentChatId
+        );
+        setChatSessions(updatedSessions);
+        setMessages([]);
+        setCurrentChatId(null);
+      }
+    } catch (err) {
+      console.error("Delete failed:", err.message);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#343541] text-white">
+        <p>⏳ Loading your chats...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -97,6 +146,7 @@ function ChatPage() {
         <TopBar
           onToggleSidebar={() => setSidebarOpen(true)}
           onDeleteChat={handleDeleteChat}
+          messages={messages}
         />
         <ChatWindow messages={messages} />
         <ChatInput onSend={handleSend} />
