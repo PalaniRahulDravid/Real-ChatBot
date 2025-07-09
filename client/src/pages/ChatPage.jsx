@@ -7,8 +7,8 @@ import ChatInput from "../components/ChatInput";
 function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [chatSessions, setChatSessions] = useState([]); // All saved chats
-  const [currentChatIndex, setCurrentChatIndex] = useState(null); // Current chat index
+  const [chatSessions, setChatSessions] = useState([]);
+  const [currentChatIndex, setCurrentChatIndex] = useState(null);
 
   const handleSend = async (message) => {
     if (!message.trim()) return;
@@ -34,14 +34,15 @@ function ChatPage() {
         const title = finalMessages[0]?.content.slice(0, 20) || "New Chat";
 
         if (currentChatIndex !== null) {
-          // update current chat
+          // Update current chat
           const updatedSessions = [...chatSessions];
           updatedSessions[currentChatIndex] = { title, messages: finalMessages };
           setChatSessions(updatedSessions);
         } else {
-          // new chat
+          // Create new chat
+          const newIndex = chatSessions.length;
           setChatSessions((prev) => [...prev, { title, messages: finalMessages }]);
-          setCurrentChatIndex(chatSessions.length);
+          setCurrentChatIndex(newIndex);
         }
       } else {
         setMessages((prev) => [
@@ -71,6 +72,18 @@ function ChatPage() {
     setSidebarOpen(false);
   };
 
+  const handleDeleteChat = () => {
+    if (currentChatIndex !== null) {
+      const updatedSessions = [...chatSessions];
+      updatedSessions.splice(currentChatIndex, 1);
+      setChatSessions(updatedSessions);
+
+      // Reset state
+      setMessages([]);
+      setCurrentChatIndex(null);
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar
@@ -81,7 +94,10 @@ function ChatPage() {
         onClose={() => setSidebarOpen(false)}
       />
       <div className="flex flex-col flex-1 bg-[#343541] text-white">
-        <TopBar onToggleSidebar={() => setSidebarOpen(true)} />
+        <TopBar
+          onToggleSidebar={() => setSidebarOpen(true)}
+          onDeleteChat={handleDeleteChat}
+        />
         <ChatWindow messages={messages} />
         <ChatInput onSend={handleSend} />
       </div>
