@@ -14,7 +14,7 @@ function ChatPage() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/chat");
+        const res = await fetch("https://real-chatbot.onrender.com/api/chat");
         const data = await res.json();
 
         if (res.ok) {
@@ -44,7 +44,7 @@ function ChatPage() {
     ]);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const res = await fetch("https://real-chatbot.onrender.com/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,7 +106,7 @@ function ChatPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/chat/${currentChatId}`,
+        `https://real-chatbot.onrender.com/api/chat/${currentChatId}`,
         {
           method: "DELETE",
         }
