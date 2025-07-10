@@ -24,7 +24,7 @@ function Sidebar({ onNewChat, onSelectChat, chatSessions, isOpen, onClose }) {
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto">
+        <div className="p-4 overflow-y-auto flex-1">
           <h2 className="text-sm text-gray-400 mb-2">Recent Chats</h2>
           <ul>
             {chatSessions.length === 0 ? (
@@ -43,6 +43,11 @@ function Sidebar({ onNewChat, onSelectChat, chatSessions, isOpen, onClose }) {
             )}
           </ul>
         </div>
+      </div>
+
+      {/* Footer message */}
+      <div className="text-center text-gray-500 text-xs p-3 border-t border-gray-700">
+        Developed by <span className="text-white font-semibold">RAHUL DRAVID</span>
       </div>
     </div>
   );
