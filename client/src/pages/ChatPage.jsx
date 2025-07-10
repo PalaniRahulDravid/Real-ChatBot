@@ -38,10 +38,7 @@ function ChatPage() {
     if (!message.trim()) return;
 
     const updatedMessages = [...messages, { role: "user", content: message }];
-    setMessages([
-      ...updatedMessages,
-      { role: "bot", content: "<typing>" }
-    ]);
+    setMessages([...updatedMessages, { role: "bot", content: "<typing>" }]);
 
     try {
       const res = await fetch("https://real-chatbot.onrender.com/api/chat", {
@@ -56,7 +53,6 @@ function ChatPage() {
 
       if (res.ok) {
         const botReply = { role: "bot", content: data.reply };
-
         const finalMessages = [...updatedMessages, botReply];
         setMessages(finalMessages);
 
@@ -74,17 +70,23 @@ function ChatPage() {
           console.warn("⚠️ No valid chat returned from backend.");
         }
       } else {
-        setMessages([...updatedMessages, {
-          role: "bot",
-          content: "⚠️ Failed to fetch response."
-        }]);
+        setMessages([
+          ...updatedMessages,
+          {
+            role: "bot",
+            content: "⚠️ Failed to fetch response.",
+          },
+        ]);
       }
     } catch (err) {
       console.error("Frontend error:", err.message);
-      setMessages([...updatedMessages, {
-        role: "bot",
-        content: "⚠️ Something went wrong!"
-      }]);
+      setMessages([
+        ...updatedMessages,
+        {
+          role: "bot",
+          content: "⚠️ Something went wrong!",
+        },
+      ]);
     }
   };
 
@@ -104,22 +106,16 @@ function ChatPage() {
   const handleDeleteChat = async () => {
     if (!currentChatId) return;
 
-    try {
-      const res = await fetch(
-        `https://real-chatbot.onrender.com/api/chat/${currentChatId}`,
-        {
-          method: "DELETE",
-        }
-      );
+    const updatedSessions = chatSessions.filter(c => c._id !== currentChatId);
+    setChatSessions(updatedSessions);
+    setMessages([]);
+    setCurrentChatId(null);
+    localStorage.removeItem("currentChatId");
 
-      if (res.ok) {
-        const updatedSessions = chatSessions.filter(
-          (c) => c._id !== currentChatId
-        );
-        setChatSessions(updatedSessions);
-        setMessages([]);
-        setCurrentChatId(null);
-      }
+    try {
+      await fetch(`https://real-chatbot.onrender.com/api/chat/${currentChatId}`, {
+        method: "DELETE",
+      });
     } catch (err) {
       console.error("Delete failed:", err.message);
     }
@@ -142,14 +138,18 @@ function ChatPage() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      <div className="flex flex-col flex-1 bg-[#343541] text-white">
+      <div className="flex flex-col h-screen flex-1 bg-[#343541] text-white overflow-hidden">
         <TopBar
           onToggleSidebar={() => setSidebarOpen(true)}
           onDeleteChat={handleDeleteChat}
           messages={messages}
         />
-        <ChatWindow messages={messages} />
-        <ChatInput onSend={handleSend} />
+        <div className="flex-1 overflow-y-auto">
+          <ChatWindow messages={messages} />
+        </div>
+        <div className="p-2 sm:p-4">
+          <ChatInput onSend={handleSend} />
+        </div>
       </div>
     </div>
   );
