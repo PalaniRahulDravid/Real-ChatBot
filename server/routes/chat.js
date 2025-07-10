@@ -6,7 +6,28 @@ require("dotenv").config();
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-// Get all chats
+// Reusable function to get AI response
+const getAIResponse = async (message) => {
+  const response = await axios.post(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      model: "mistralai/mistral-7b-instruct",
+      messages: [
+        { role: "system", content: "You are a helpful assistant." },
+        { role: "user", content: message },
+      ],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data?.choices?.[0]?.message?.content || "No response";
+};
+
 router.get("/", async (req, res) => {
   try {
     const chats = await Chat.find();
@@ -16,7 +37,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Post new message or update existing chat
 router.post("/", async (req, res) => {
   const { message, chatId } = req.body;
 
@@ -25,57 +45,37 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "mistralai/mistral-7b-instruct",
-        messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          { role: "user", content: message },
-        ],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const botReply =
-      response.data?.choices?.[0]?.message?.content || "No response";
-
-    let chat;
+    const aiResponse = await getAIResponse(message);
 
     if (chatId) {
-      // Update existing chat
-      chat = await Chat.findById(chatId);
-      chat.messages.push({ role: "user", content: message });
-      chat.messages.push({ role: "bot", content: botReply });
-      await chat.save();
+      const chat = await Chat.findById(chatId);
+      if (!chat) return res.status(404).json({ error: "Chat not found." });
 
-      res.status(200).json({ reply: botReply });
+      chat.messages.push({ role: "user", content: message });
+      chat.messages.push({ role: "bot", content: aiResponse });
+
+      await chat.save();
+      return res.status(200).json({ reply: aiResponse });
     } else {
-      // Create new chat
-      chat = new Chat({
-        title: message.slice(0, 20) || "New Chat",
+      const cleanedTitle = message.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 30);
+
+      const newChat = new Chat({
+        title: cleanedTitle || "New Chat",
         messages: [
           { role: "user", content: message },
-          { role: "bot", content: botReply },
+          { role: "bot", content: aiResponse },
         ],
       });
 
-      await chat.save();
-
-      res.status(200).json({ reply: botReply, chat }); // send new chat object
+      await newChat.save();
+      return res.status(200).json({ reply: aiResponse, chat: newChat });
     }
-  } catch (error) {
-    console.error("❌ OpenRouter Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "OpenRouter API call failed." });
+  } catch (err) {
+    console.error("Chat save error:", err.response?.data || err.message);
+    res.status(500).json({ error: "Server error." });
   }
 });
 
-// Delete a chat by ID
 router.delete("/:id", async (req, res) => {
   try {
     await Chat.findByIdAndDelete(req.params.id);

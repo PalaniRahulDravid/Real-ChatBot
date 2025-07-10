@@ -11,7 +11,6 @@ function ChatPage() {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load all chats on page load
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -35,12 +34,14 @@ function ChatPage() {
     fetchChats();
   }, []);
 
-  // handleSend function
   const handleSend = async (message) => {
     if (!message.trim()) return;
 
     const updatedMessages = [...messages, { role: "user", content: message }];
-    setMessages(updatedMessages);
+    setMessages([
+      ...updatedMessages,
+      { role: "bot", content: "<typing>" }
+    ]);
 
     try {
       const res = await fetch("http://localhost:5000/api/chat", {
@@ -54,10 +55,9 @@ function ChatPage() {
       const data = await res.json();
 
       if (res.ok) {
-        const finalMessages = [
-          ...updatedMessages,
-          { role: "bot", content: data.reply },
-        ];
+        const botReply = { role: "bot", content: data.reply };
+
+        const finalMessages = [...updatedMessages, botReply];
         setMessages(finalMessages);
 
         if (currentChatId) {
@@ -74,17 +74,17 @@ function ChatPage() {
           console.warn("⚠️ No valid chat returned from backend.");
         }
       } else {
-        setMessages((prev) => [
-          ...prev,
-          { role: "bot", content: "⚠️ Failed to fetch response." },
-        ]);
+        setMessages([...updatedMessages, {
+          role: "bot",
+          content: "⚠️ Failed to fetch response."
+        }]);
       }
     } catch (err) {
       console.error("Frontend error:", err.message);
-      setMessages((prev) => [
-        ...prev,
-        { role: "bot", content: "⚠️ Something went wrong!" },
-      ]);
+      setMessages([...updatedMessages, {
+        role: "bot",
+        content: "⚠️ Something went wrong!"
+      }]);
     }
   };
 

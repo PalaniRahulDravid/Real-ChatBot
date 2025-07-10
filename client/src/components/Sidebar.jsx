@@ -9,7 +9,6 @@ function Sidebar({ onNewChat, onSelectChat, chatSessions, isOpen, onClose }) {
       `}
     >
       <div>
-        {/* New Chat Button + Close Button */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-center">
           <button
             onClick={onNewChat}
@@ -25,26 +24,24 @@ function Sidebar({ onNewChat, onSelectChat, chatSessions, isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Chat List Section */}
         <div className="p-4 overflow-y-auto">
           <h2 className="text-sm text-gray-400 mb-2">Recent Chats</h2>
-
-          {chatSessions.length === 0 ? (
-            <p className="text-gray-500 text-sm">No chats yet.</p>
-          ) : (
-            <ul className="space-y-2">
-              {chatSessions.map((chat, index) => (
-                <li key={index}>
-                  <button
-                    onClick={() => onSelectChat(index)}
-                    className="w-full text-left p-2 bg-[#2A2B32] hover:bg-[#3a3b45] rounded text-sm truncate"
-                  >
-                    🗨️ {chat.title || "Untitled Chat"}
-                  </button>
+          <ul>
+            {chatSessions.length === 0 ? (
+              <p className="text-gray-500 text-sm">No chats yet.</p>
+            ) : (
+              chatSessions.map((chat) => (
+                <li
+                  key={chat._id}
+                  onClick={() => onSelectChat(chat._id)}
+                  className="cursor-pointer px-3 py-2 rounded hover:bg-[#2A2B32] mb-2 truncate"
+                  title={chat.title}
+                >
+                  🗨️ {chat.title || "Untitled Chat"}
                 </li>
-              ))}
-            </ul>
-          )}
+              ))
+            )}
+          </ul>
         </div>
       </div>
     </div>
