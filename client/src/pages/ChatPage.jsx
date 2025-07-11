@@ -15,7 +15,8 @@ function ChatPage() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Redirect if not logged in
+  const API_BASE = "https://real-chatbot.onrender.com/api";
+
   useEffect(() => {
     if (!token) {
       alert("Please login first to access chats.");
@@ -25,7 +26,7 @@ function ChatPage() {
 
     const fetchChats = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/chat", {
+        const res = await fetch(`${API_BASE}/chat`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -59,7 +60,7 @@ function ChatPage() {
     setMessages([...updatedMessages, { role: "bot", content: "<typing>" }]);
 
     try {
-      const res = await fetch("http://localhost:5000/api/chat", {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -125,7 +126,7 @@ function ChatPage() {
     setCurrentChatId(null);
 
     try {
-      await fetch(`http://localhost:5000/api/chat/${currentChatId}`, {
+      await fetch(`${API_BASE}/chat/${currentChatId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
