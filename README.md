@@ -1,4 +1,4 @@
-# 💬 AI Chatbot using React, Node.js, Express & MongoDB
+# 💬 AI Chatbot using MERN Stack
 
 This is a full-stack chatbot web application built using **React** (frontend), **Express.js** (backend), and **MongoDB Atlas** (database). It uses **OpenRouter API** for generating intelligent AI responses.
 
@@ -6,6 +6,8 @@ This is a full-stack chatbot web application built using **React** (frontend), *
 
 ## 🚀 Features
 
+- 🔐 **User Authentication** (Register/Login)
+- 🚫 Protected Routes: Only logged-in users can access the chat
 - 🌐 Responsive web interface to chat with an AI assistant  
 - ✨ Start new chats and view previous conversations  
 - 💾 Chat history is saved in **MongoDB Atlas**  
@@ -18,12 +20,24 @@ This is a full-stack chatbot web application built using **React** (frontend), *
 ## 📁 Project Structure
 
 ```
-client/           # React Frontend
-  └── components/
-  └── pages/
-server/           # Node.js Backend
+client/                 # React Frontend
+  └── components/       # Reusable UI components
+  └── pages/            # Page-level components (Login, Register, Chat, etc)
+  └── utils/            # Utility functions
+  └── App.jsx           # Root component
+  └── main.jsx          # React entry point
+
+server/                 # Node.js Backend
   └── routes/
+      └── auth.js       # Register & Login APIs
+      └── chat.js       # Chat APIs
   └── models/
+      └── User.js       # User schema
+      └── Chat.js       # Chat schema
+  └── middleware/
+      └── authMiddleware.js  # Token validation middleware
+  └── index.js          # Server entry point
+  └── .env              # Environment config
 ```
 
 ---
@@ -37,6 +51,8 @@ git clone https://github.com/PalaniRahulDravid/Real-ChatBot.git
 cd Real-ChatBot
 ```
 
+---
+
 ### 2. Setup the backend (server)
 
 ```bash
@@ -44,14 +60,15 @@ cd server
 npm install
 ```
 
-Create a `.env` file inside the `server` folder with the following contents:
+Create a `.env` file inside the `server` folder:
 
 ```env
 MONGO_URI=your_mongodb_atlas_url
 OPENROUTER_API_KEY=your_openrouter_api_key
+JWT_SECRET=your_jwt_secret_key
 ```
 
-Now run the backend server:
+Start the backend:
 
 ```bash
 node index.js
@@ -73,21 +90,38 @@ It will run at: `http://localhost:5173`
 
 ---
 
+## 🔑 Authentication Flow
+
+- 📝 **Register** at `/register` with name, email, and password
+  - Invalid email = "Please enter a valid email address"
+  - Existing user = "User already exists. Please login."
+  - Success = "Registration successful. Please login."
+
+- 🔐 **Login** at `/login` with valid credentials
+  - Invalid combo = "Invalid email or password"
+  - Unregistered email = "Please register first"
+  - On success, you're redirected to the chatbot
+
+- 🧭 **Route Protection**
+  - If you're not logged in, `/` (chat page) redirects to `/login`
+  - Token stored securely in `localStorage`
+
+---
+
 ## 🧠 How to Use
 
-1. Open the app in browser: `http://localhost:5173`  
-2. Type your question in the input field  
-3. The chatbot will reply using AI (via OpenRouter API)  
-4. Start a new chat any time  
-5. View recent chats on the left sidebar  
-6. Delete any conversation from the top menu  
+1. Open the app: [https://real-chat-bot.vercel.app/login](https://real-chat-bot.vercel.app/login)
+2. Register or login  
+3. Start chatting with the AI  
+4. View recent chats in sidebar  
+5. Logout by clearing `localStorage` token  
 
 ---
 
 ## 🔑 How to Get OpenRouter API Key
 
-1. Visit [https://openrouter.ai](https://openrouter.ai)  
-2. Sign in and copy your API key  
+1. Go to [https://openrouter.ai](https://openrouter.ai)  
+2. Sign in and get your API key  
 3. Paste it into `.env` like this:
 
 ```env
@@ -101,16 +135,16 @@ OPENROUTER_API_KEY=your_key_here
 - React + Tailwind CSS  
 - Node.js + Express.js  
 - MongoDB Atlas  
-- OpenRouter API
-- Framer Motion  
-- Vite
+- OpenRouter API  
+- JWT for authentication  
+- Vite + Framer Motion
 
 ---
 
 ## 🙌 Developed By
 
 **RAHUL DRAVID**  
-Inspired by real-world AI interfaces like ChatGPT.
+Inspired by real-world AI apps like ChatGPT & Gemini.
 
 ---
 
