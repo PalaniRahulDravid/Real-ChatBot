@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { FaShareAlt, FaEllipsisV, FaBars } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function TopBar({ onToggleSidebar, onDeleteChat, messages = [] }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [logoutToast, setLogoutToast] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -39,6 +42,16 @@ function TopBar({ onToggleSidebar, onDeleteChat, messages = [] }) {
         alert("❌ Failed to copy chat.");
       }
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setMenuOpen(false);
+    setLogoutToast(true);
+    setTimeout(() => {
+      setLogoutToast(false);
+      navigate("/login");
+    }, 1500);
   };
 
   // Close dropdown when clicking outside
@@ -91,6 +104,12 @@ function TopBar({ onToggleSidebar, onDeleteChat, messages = [] }) {
               >
                 🗑️ Delete Chat
               </button>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 hover:bg-[#2A2B32]"
+              >
+                🔒 Logout
+              </button>
             </div>
           )}
         </div>
@@ -102,10 +121,16 @@ function TopBar({ onToggleSidebar, onDeleteChat, messages = [] }) {
           className="w-8 h-8 rounded-full border border-gray-500"
         />
 
-        {/* Success Toast */}
+        {/* Success Toasts */}
         {copied && (
           <div className="absolute top-full mt-2 right-0 bg-green-600 text-white px-3 py-1 text-sm rounded shadow z-50">
             ✅ Chat copied!
+          </div>
+        )}
+
+        {logoutToast && (
+          <div className="absolute top-full mt-2 right-0 bg-red-600 text-white px-3 py-1 text-sm rounded shadow z-50">
+            ✅ Logged out!
           </div>
         )}
       </div>
