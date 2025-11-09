@@ -1,6 +1,6 @@
 # 💬 AI Chatbot using MERN Stack
 
-This is a full-stack chatbot web application built using **React** (frontend), **Express.js** (backend), and **MongoDB Atlas** (database). It uses **OpenRouter API** for generating intelligent AI responses.
+This is a full-stack chatbot web application built using **React** (frontend), **Express.js** (backend), and **MongoDB Atlas** (database). It uses **Groq API Key** for generating intelligent AI responses.
 
 ---
 
@@ -64,7 +64,7 @@ Create a `.env` file inside the `server` folder:
 
 ```env
 MONGO_URI=your_mongodb_atlas_url
-OPENROUTER_API_KEY=your_openrouter_api_key
+GROQ_API_KE=your_groq_api_key
 JWT_SECRET=your_jwt_secret_key
 ```
 
@@ -118,9 +118,9 @@ It will run at: `http://localhost:5173`
 
 ---
 
-## 🔑 How to Get OpenRouter API Key
+## 🔑 How to Get Groq API Key
 
-1. Go to [https://openrouter.ai](https://openrouter.ai)  
+1. Go to [https://console.groq.com/keys](https://console.groq.com/keys)  
 2. Sign in and get your API key  
 3. Paste it into `.env` like this:
 
@@ -135,7 +135,7 @@ OPENROUTER_API_KEY=your_key_here
 - React + Tailwind CSS  
 - Node.js + Express.js  
 - MongoDB Atlas  
-- OpenRouter API  
+- Groq API  
 - JWT for authentication  
 - Vite + Framer Motion
 
