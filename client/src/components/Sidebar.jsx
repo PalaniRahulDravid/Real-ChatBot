@@ -1,72 +1,63 @@
 import { useEffect } from "react";
 
-function Sidebar({ onNewChat, onSelectChat, chatSessions, isOpen, onClose }) {
+function Sidebar({
+  isOpen,
+  onClose,
+  onNewChat,
+  onSelectChat,
+  chatSessions,
+  currentChatId,
+}) {
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
 
   return (
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black opacity-40 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
           onClick={onClose}
         />
       )}
 
-      {/* Sidebar */}
       <div
-        className={`
-          fixed lg:static top-0 left-0 h-full w-64 bg-[#202123] text-[#E5E7EB]
-          transform ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-          lg:translate-x-0 transition-transform duration-300 ease-in-out
-          z-40 flex flex-col justify-between
-        `}
+        className={`fixed lg:static top-0 left-0 h-full w-64 bg-[#202123] text-[#E5E7EB] 
+        transform ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0 transition-transform duration-300 z-40 flex flex-col`}
       >
-        <div>
-          <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-            <button
-              onClick={onNewChat}
-              className="w-full bg-[#40414F] hover:bg-[#4b4c5a] p-2 rounded text-left"
-            >
-              ➕ New Chat
-            </button>
-            <button
-              onClick={onClose}
-              className="lg:hidden text-gray-400 ml-2 hover:text-white"
-            >
-              ✖️
-            </button>
-          </div>
-
-          <div className="p-4 overflow-y-auto flex-1">
-            <h2 className="text-sm text-gray-400 mb-2">Recent Chats</h2>
-            <ul>
-              {chatSessions.length === 0 ? (
-                <p className="text-gray-500 text-sm">No chats yet.</p>
-              ) : (
-                chatSessions.map((chat) => (
-                  <li
-                    key={chat._id}
-                    onClick={() => onSelectChat(chat._id)}
-                    className="cursor-pointer px-3 py-2 rounded hover:bg-[#2A2B32] mb-2 truncate"
-                    title={chat.title}
-                  >
-                    🗨️ {chat.title || "Untitled Chat"}
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
+        <div className="p-4 border-b border-gray-700">
+          <button
+            onClick={onNewChat}
+            className="w-full bg-[#40414F] hover:bg-[#4b4c5a] p-2 rounded"
+          >
+            ➕ New Chat
+          </button>
         </div>
 
-        {/* Footer message */}
-        <div className="text-center text-gray-500 text-xs p-3 border-t border-gray-700">
-          Developed by <span className="text-white font-semibold">RAHUL DRAVID</span>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <h2 className="text-sm text-gray-400 mb-2">Recent Chats</h2>
+          {chatSessions.length === 0 ? (
+            <p className="text-gray-500 text-sm">No chats yet.</p>
+          ) : (
+            chatSessions.map((chat) => (
+              <div
+                key={chat._id}
+                onClick={() => onSelectChat(chat._id)}
+                className={`cursor-pointer px-3 py-2 rounded ${
+                  currentChatId === chat._id
+                    ? "bg-[#10A37F] text-white"
+                    : "hover:bg-[#2A2B32]"
+                } truncate`}
+              >
+                🗨️ {chat.title}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="p-3 text-center text-gray-500 text-xs border-t border-gray-700">
+          Developed by <span className="text-white">RAHUL DRAVID</span>
         </div>
       </div>
     </>

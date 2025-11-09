@@ -10,19 +10,19 @@ function ChatInput({ onSend }) {
   };
 
   return (
-    <div className="bg-[#40414F] p-4">
-      <div className="max-w-2xl mx-auto flex gap-2">
+    <div className="bg-[#40414F] p-3 shadow-inner">
+      <div className="max-w-3xl mx-auto flex gap-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Send a message..."
-          className="flex-1 px-4 py-2 rounded-md bg-[#343541] text-white outline-none border border-gray-600"
+          placeholder="Type your message..."
+          className="flex-1 px-4 py-2 rounded-md bg-[#343541] text-white border border-gray-600 outline-none"
         />
         <button
           onClick={handleSend}
-          className="bg-[#10A37F] px-4 py-2 rounded-md text-white hover:opacity-90"
+          className="bg-[#10A37F] px-4 py-2 rounded-md hover:opacity-90"
         >
           Send
         </button>

@@ -2,11 +2,7 @@ const mongoose = require("mongoose");
 
 const chatSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-      default: "Untitled Chat",
-    },
+    title: { type: String, default: "Untitled Chat" },
     messages: [
       {
         role: { type: String, required: true },

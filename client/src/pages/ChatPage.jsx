@@ -15,8 +15,13 @@ function ChatPage() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  const API_BASE = "https://real-chatbot.onrender.com/api";
+  // ✅ Auto-switch: if running locally, use localhost; else use deployed
+  const API_BASE =
+    window.location.hostname === "localhost"
+      ? "http://localhost:5000/api"
+      : "https://real-chatbot.onrender.com/api";
 
+  // 🧠 Fetch all chats on load
   useEffect(() => {
     if (!token) {
       alert("Please login first to access chats.");
@@ -53,11 +58,13 @@ function ChatPage() {
     fetchChats();
   }, [token, navigate]);
 
+  // 💬 Send Message (Main logic)
   const handleSend = async (message) => {
     if (!message.trim()) return;
 
-    const updatedMessages = [...messages, { role: "user", content: message }];
-    setMessages([...updatedMessages, { role: "bot", content: "<typing>" }]);
+    // temporary show typing
+    const tempMsgs = [...messages, { role: "user", content: message }];
+    setMessages([...tempMsgs, { role: "bot", content: "<typing>" }]);
 
     try {
       const res = await fetch(`${API_BASE}/chat`, {
@@ -71,32 +78,42 @@ function ChatPage() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        const botReply = { role: "bot", content: data.reply };
-        const finalMessages = [...updatedMessages, botReply];
-        setMessages(finalMessages);
+      if (res.ok && data.chat) {
+        // Clean all messages
+        const cleanedMessages = data.chat.messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content
+            .replace(/<s>|<\/s>|<[^>]*>/g, "")
+            .replace(/\s+/g, " ")
+            .trim(),
+        }));
 
-        if (currentChatId) {
-          const updatedSessions = chatSessions.map((session) =>
-            session._id === currentChatId
-              ? { ...session, messages: finalMessages }
-              : session
-          );
-          setChatSessions(updatedSessions);
-        } else if (data.chat && data.chat._id) {
-          setChatSessions((prev) => [...prev, data.chat]);
-          setCurrentChatId(data.chat._id);
-        }
+        // ✅ Update chat window
+        setMessages(cleanedMessages);
+        setCurrentChatId(data.chat._id);
+
+        // ✅ Update session list
+        setChatSessions((prev) => {
+          const exists = prev.find((c) => c._id === data.chat._id);
+          if (exists) {
+            return prev.map((c) =>
+              c._id === data.chat._id ? { ...data.chat } : c
+            );
+          } else {
+            return [...prev, data.chat];
+          }
+        });
       } else {
+        console.warn("AI response missing:", data.error);
         setMessages([
-          ...updatedMessages,
-          { role: "bot", content: "⚠️ Failed to fetch response." },
+          ...tempMsgs,
+          { role: "bot", content: "⚠️ Could not get AI response." },
         ]);
       }
     } catch (err) {
       console.error("Frontend error:", err.message);
       setMessages([
-        ...updatedMessages,
+        ...tempMsgs,
         { role: "bot", content: "⚠️ Something went wrong!" },
       ]);
     }
@@ -119,7 +136,6 @@ function ChatPage() {
 
   const handleDeleteChat = async () => {
     if (!currentChatId) return;
-
     const updatedSessions = chatSessions.filter((c) => c._id !== currentChatId);
     setChatSessions(updatedSessions);
     setMessages([]);
@@ -147,6 +163,7 @@ function ChatPage() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
       <Sidebar
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
@@ -155,6 +172,8 @@ function ChatPage() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
+
+      {/* Main Chat Area */}
       <div className="flex flex-col h-screen flex-1 bg-[#343541] text-white overflow-hidden">
         <TopBar
           onToggleSidebar={() => setSidebarOpen(true)}

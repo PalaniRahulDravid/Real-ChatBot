@@ -3,87 +3,162 @@ import { useNavigate } from "react-router-dom";
 
 function Register() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+
+  // State for form inputs
+  const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // UI feedback states
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState({ error: "", success: "" });
+  const [errors, setErrors] = useState({});
 
+  // Handle input change
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  // Form validation
+  const validate = () => {
+    const newErrors = {};
+    if (!form.username.trim()) newErrors.username = "Please enter your username.";
+    if (!form.email.trim()) newErrors.email = "Please enter your email.";
+    else if (!/\S+@\S+\.\S+/.test(form.email))
+      newErrors.email = "Please enter a valid email.";
+    if (!form.password.trim()) newErrors.password = "Please enter your password.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMsg({ error: "", success: "" });
 
-    setError("");
-    setSuccess("");
+    if (!validate()) return;
 
+    setLoading(true);
     try {
-      const res = await fetch("https://real-chatbot.onrender.com/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || "https://real-chatbot.onrender.com/api"}/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        return setError(data.error || "Registration failed");
+        setMsg({ error: data.error || "Something went wrong", success: "" });
+        setLoading(false);
+        return;
       }
 
-      setSuccess("✅ Registration successful! Please login.");
-      setTimeout(() => navigate("/login"), 2000);
-    } catch (err) {
-      setError("❌ Server error. Try again later.");
+      setMsg({ success: "✅ Registered Successfully!", error: "" });
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    } catch (error) {
+      console.error("Registration error:", error);
+      setMsg({ error: "⚠️ Server error. Please try again later.", success: "" });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-[#343541] text-white">
+    <div className="h-screen flex items-center justify-center bg-[#343541] text-white px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-[#202123] p-6 rounded-md w-full max-w-sm space-y-4"
+        className="bg-[#202123] p-8 rounded-lg shadow-lg w-[90%] max-w-sm space-y-4"
       >
-        <h2 className="text-xl font-bold text-center">Register</h2>
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          onChange={handleChange}
-          className="w-full px-3 py-2 rounded bg-[#343541] border border-gray-600 outline-none"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          onChange={handleChange}
-          className="w-full px-3 py-2 rounded bg-[#343541] border border-gray-600 outline-none"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={handleChange}
-          className="w-full px-3 py-2 rounded bg-[#343541] border border-gray-600 outline-none"
-          required
-        />
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-        {success && <p className="text-green-400 text-sm">{success}</p>}
+        <h2 className="text-2xl font-bold text-center mb-4">Create Account</h2>
+
+        {/* Username Field */}
+        <div>
+          <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={form.username}
+            onChange={handleChange}
+            className={`w-full p-2 rounded bg-[#343541] border ${
+              errors.username ? "border-red-500" : "border-gray-600"
+            } outline-none`}
+          />
+          {errors.username && (
+            <p className="text-red-400 text-sm mt-1">{errors.username}</p>
+          )}
+        </div>
+
+        {/* Email Field */}
+        <div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            className={`w-full p-2 rounded bg-[#343541] border ${
+              errors.email ? "border-red-500" : "border-gray-600"
+            } outline-none`}
+          />
+          {errors.email && (
+            <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+          )}
+        </div>
+
+        {/* Password Field */}
+        <div>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            className={`w-full p-2 rounded bg-[#343541] border ${
+              errors.password ? "border-red-500" : "border-gray-600"
+            } outline-none`}
+          />
+          {errors.password && (
+            <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+          )}
+        </div>
+
+        {/* Success / Error Messages */}
+        {msg.error && (
+          <p className="text-red-400 text-center text-sm">{msg.error}</p>
+        )}
+        {msg.success && (
+          <p className="text-green-400 text-center text-sm">{msg.success}</p>
+        )}
+
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-[#10A37F] text-white py-2 rounded hover:opacity-90"
+          disabled={loading}
+          className={`w-full bg-[#10A37F] py-2 rounded font-semibold transition-all ${
+            loading
+              ? "opacity-70 cursor-not-allowed bg-[#0e8c6c]"
+              : "hover:opacity-90"
+          }`}
         >
-          Register
+          {loading ? "⏳ Creating Account..." : "Register"}
         </button>
-        <p className="text-center text-sm">
-          Already have an account?{" "}
+
+        {/* Redirect to Login */}
+        <p className="text-center text-sm mt-2">
+          Already registered?{" "}
           <span
-            className="text-blue-400 cursor-pointer"
             onClick={() => navigate("/login")}
+            className="text-blue-400 cursor-pointer hover:underline"
           >
             Login
           </span>
